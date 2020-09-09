@@ -94,12 +94,15 @@ docker restart nginx
 
 # Script to manage SSL certificates
 
-`ssl_update.sh`
+`/data/certbot/ssl_update.sh`
 
 * generates a self-signed certificate if certificate doesn't exist
 * renew certificates with Let's Encrypt if certificate expires or about to expire
 
-see the script below
+see the script below.
+
+inspired by  https://github.com/vdhpieter/docker-letsencrypt-webroot.
+
 
 
 * update certificates
@@ -119,13 +122,10 @@ export CHECK_FREQ="30";
 export CHICKENEGG="1";
 export STAGING="0";
 
-bash /data/ssl_update.sh
+bash /data/certbot/ssl_update.sh
                   
 ```
 
 
 
-
-References:
-* https://github.com/vdhpieter/docker-letsencrypt-webroot
 
