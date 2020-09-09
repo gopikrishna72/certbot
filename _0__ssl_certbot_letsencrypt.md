@@ -4,6 +4,7 @@ Directories on host machine:
 * `/data/certbot/www`
 
 
+
 * Nginx server in docker container
 ```
     -v /data/certbot/letsencrypt:/etc/letsencrypt
