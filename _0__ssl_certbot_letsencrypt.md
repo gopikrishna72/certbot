@@ -7,23 +7,100 @@ Directories on host machine:
 
 * Nginx server in docker container
 ```
+docker run -d --name nginx \
+    ...
     -v /data/certbot/letsencrypt:/etc/letsencrypt
     -v /data/certbot/www:/var/www/certbot
+    nginx
+    
 ```
 
 config file for your site 
 ```
-location '/.well-known/acme-challenge' {
-        default_type "text/plain";
-        root        /var/www/certbot;
-    }
+server {
+  listen 80;
+  server_name mysite.com;
+
+  location /.well-known/acme-challenge/ {
+    root /var/www/certbot;
+  }
+
+  location / {
+      return 301 https://$host$request_uri;
+  }
+}
+
+
+server {
+  listen 443 ssl;
+  server_name mysite.com;
+
+  access_log /var/log/nginx/access.log combined_ssl;
+
+  ssl_certificate /etc/letsencrypt/live/mysite.com/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/mysite.com/privkey.pem;
+
+  #include /data/letsencrypt/options-ssl-nginx.conf;
+  #ssl_dhparam /data/letsencrypt/ssl-dhparams.pem;
+
+  location / {
+      set $upstream "site_upstream";
+
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header Host $http_host;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+      proxy_set_header X-Real-Port $server_port;
+      proxy_set_header X-Real-Scheme $scheme;
+      proxy_set_header X-NginX-Proxy true;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header X-Forwarded-Ssl on;
+
+      expires off;
+
+      proxy_pass http://$upstream;
+  }
+}
+
+upstream site_upstream{
+    server 51.1.0.20:80;
+}
+
 ```
 
 
+* run certbot 
+```
+docker run --rm --name temp_certbot \
+    -v /data/certbot/letsencrypt:/etc/letsencrypt \
+    -v /data/certbot/www:/tmp/letsencrypt \
+    -v /data/servers-data/certbot/log:/var/log \
+    certbot/certbot:v1.8.0 \
+    certonly --webroot --agree-tos --renew-by-default \
+    --preferred-challenges http-01 --server https://acme-v02.api.letsencrypt.org/directory \
+    --text --email mxdevit@gmail.com \
+    -w /tmp/letsencrypt -d mysite.com
 
-* `ssl_update.sh` script
-* generates a self-signed certificate
-* renew certificates with Let's Encrypt
+```
+
+it will create new certificates in `/data/certbot/letsencrypt/live/mysite.com/`.
+
+
+restart nginx 
+```
+docker restart nginx
+```
+
+
+# Script to manage SSL certificates
+
+`ssl_update.sh`
+
+* generates a self-signed certificate if certificate doesn't exist
+* renew certificates with Let's Encrypt if certificate expires or about to expire
+
+see the script below
+
 
 * update certificates
 
