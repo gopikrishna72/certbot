@@ -34,7 +34,7 @@ location '/.well-known/acme-challenge' {
 
 export CERT_DIR_PATH="/data/certbot/letsencrypt";
 export WEBROOT_PATH="/data/certbot/www";
-export LE_RENEW_HOOK="docker restart web-nginx-front";
+export LE_RENEW_HOOK="docker restart nginx"; # <--- change to your nginx server docker container name
 export DOMAINS="mysite.com";
 export EMAIL="myemail@gmail.com";
 export EXP_LIMIT="30";

@@ -48,8 +48,6 @@ le_fixpermissions() {
 }
 
 le_renew() {
-#    certbot certonly --webroot --agree-tos --renew-by-default --text ${ADDITIONAL} --email ${EMAIL_ADDRESS} -w ${WEBROOT_PATH} ${LE_DOMAINS}
-
     docker run --rm --name temp_certbot \
         -v "${CERT_DIR_PATH}:/etc/letsencrypt" \
         -v "${WEBROOT_PATH}:/tmp/letsencrypt" \
